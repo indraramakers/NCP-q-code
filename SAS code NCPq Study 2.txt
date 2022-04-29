@@ -1,0 +1,100 @@
+
+/*----------*/
+/*1. STUDY 1*/
+/*----------*/
+
+
+/* 1.1. CHECK DISTRIBUTIONS */
+
+
+proc univariate data = NCPQ_study1;
+var NCP_Q_total NCP_Q_C NCP_Q_P; 
+histogram NCP_Q_total NCP_Q_C NCP_Q_P;
+run; 
+
+proc corr data = NCPQ_study1; 
+var NCP_Q_C NCP_Q_P; 
+run;
+
+
+/* 1.2. CORRELATIONS WITH OTHER QUESTIONNAIRES */
+
+proc univariate data = NCPQ_study1; 
+var IUS BDI_totaal PSWQ_totaal Stait_totaal; 
+run; 
+
+proc corr data = NCPQ_study1; 
+var IUS BDI_totaal PSWQ_totaal Stait_totaal NCP_Q_total NCP_Q_C NCP_Q_P;
+run;  
+
+
+/*------------*/
+/* 2. STUDY 2 */
+/*------------*/
+
+
+/* 2.1. Description sample */
+proc freq data = NCPQ_study2; 
+tables group group*sex; 
+run; 
+
+proc means data = NCPQ_study2; 
+class group; 
+var age; 
+run; 
+
+ 
+/* 2.1. Comparison between patient groups */
+
+proc means data = NCPQ_study2; 
+class group; 
+var NCPtot; 
+run; 
+
+proc glm data = NCPQ_study2; 
+class group; 
+model NCPtot = group;
+means group / Tukey;
+run;  
+
+/* 2.3. Correlations with questionnaires */
+
+
+proc univariate data = NCPQ_study2;
+where patient = 1;
+var NCPtot MPS_adaptive MPS_maladaptive AAQtot; 
+histogram NCPtot personal_standards parental_expectations organisation concern_mistakes parental_criticism doubts AAQtot; 
+run; 
+
+/*hypotheses*/
+
+proc corr data = NCPQ_study2; 
+where patient = 1; 
+var NCPtot personal_standards parental_expectations organisation concern_mistakes parental_criticism doubts AAQtot;
+run; 
+
+/* FDR correction*/
+
+options nodate; 
+title 'False Discovery Rates first correlation matrix (all patients)';
+data pvalues;
+	input raw_p;
+	datalines;
+0.000099
+0.000099
+0.000099
+0.0005
+0.0012
+0.2685
+0.374
+;
+proc print data=pvalues (obs=7); 
+run;
+proc multtest pdata=pvalues fdr bonferonni;
+run;
+
+/*Exploratory*/
+proc corr data = NCPQ_study2; 
+where patient = 1; 
+var NCPtot VBE_totaal_Ja TAS_DIF TAS_DDF ISAQ_F1 ISAQ_F2;
+run; 
